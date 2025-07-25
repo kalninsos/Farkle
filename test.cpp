@@ -11,6 +11,28 @@ vector<int> Roll(int dice_amount) {
     return rolls;
 }
 
+int CalculateScore(vector<int> rolls) {
+    int score;
+    vector<int> number_frequency(6); // should always be 6 dice
+
+    for(int i = 0; i < 6; i++) {
+        number_frequency[rolls[i] - 1]++; // -1 as vectors are 0 indexed (0-5) but our dice rolls are 1-6
+    }
+
+    for(int i = 0; i < 6; i++) {
+        cout << number_frequency[i];
+    }
+
+    return score;
+}
+
+void PrintScore(vector<int> rolls) {
+    for(int i = 0; i < 6; i++) {
+            cout << rolls[i];
+    }
+    cout << endl;
+}
+
 int main () {
 
     char res;
@@ -20,11 +42,9 @@ int main () {
         cout << "rolling dice!" << endl;
 
         vector<int> rolls = Roll(6);
+        PrintScore(rolls);
+        int score = CalculateScore(rolls);
 
-        for(int i = 0; i < 6; i++) {
-            cout << rolls[i];
-        }
-        
     }
     else {
         cout << "invalid char" << endl;
