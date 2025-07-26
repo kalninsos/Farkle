@@ -10,14 +10,26 @@ vector<int> Roll(int dice_amount) {
     }
     return rolls;
 }
-
-int CalculateScore(vector<int> rolls) {
+/*
+REMEMBER as vector's are 0 indexed, rolls are stored as follows:
+Roll # | Position in Vector
+    1  |   0
+    2  |   1
+    3  |   2
+    4  |   3
+    5  |   4
+    6  |   5
+*/
+int CalculateScore(vector<int> rolls, int dice_amount) {
     int score = 0;
     int straight16 = 0;
-    vector<int> number_frequency(6); // should always be 6 dice
+    int three_pairs = 0;
+    int triplets = 0;
+    bool four_pairs = false;
+    vector<int> number_frequency(6); // frequency table should always have 6 slots
 
     //build frequency vector
-    for(int i = 0; i < 6; i++) {
+    for(int i = 0; i < dice_amount; i++) {
         number_frequency[rolls[i] - 1]++; // -1 as vectors are 0 indexed (0-5) but our dice rolls are 1-6
     }
 
@@ -28,26 +40,56 @@ int CalculateScore(vector<int> rolls) {
     cout << endl;
 
     for(int i = 0; i < 6; i++) {
+        //Six of a kind and Three Pairs check and monitor
+        if(dice_amount == 6) {
+            if(number_frequency[i] == 6) {
+                score += 3000;
+                return score;
+            }
+            if(number_frequency[i] == 2) {
+                three_pairs++;
+            }
+            if(number_frequency[i] == 4) {
+                four_pairs = true;
+                score += 1000;
+            }
+            if(number_frequency[i] == 3) {
+                triplets += 1;
+            }
+        }
+
+        //Straight 1-6 monitor and single 1 or 5 check
         if(number_frequency[i] == 1) {
-            straight16++; //1-6 straight check
-            if(i == 1) {
+            straight16++;
+            if(i == 0) {
                 score += 100;
             }
-            else if(i == 5) {
+            else if(i == 4) {
                 score += 50;
             }
         }
     }
 
-    if(straight16 == 6) {
+    if(triplets == 2) {
+        score = 2500;
+        return score;
+    }
+    
+    if(four_pairs == true && three_pairs == 1) {
         score = 1500;
+        return score;
+    }
+
+    if(straight16 == 6 || three_pairs == 3) {
+        score = 1500;
+        return score;
     }
 
     return score;
 }
 
-void PrintRolls(vector<int> rolls) {
-    for(int i = 0; i < 6; i++) {
+void PrintRolls(vector<int> rolls, int dice_amount) {
+    for(int i = 0; i < dice_amount; i++) {
             cout << rolls[i];
     }
     cout << endl;
@@ -61,9 +103,15 @@ int main () {
     if(res == 'r') {
         cout << "rolling dice!" << endl;
 
-        vector<int> rolls = Roll(6);
-        PrintRolls(rolls);
-        int score = CalculateScore(rolls);
+        // vector<int> rolls = Roll(6);
+        // PrintRolls(rolls);
+        // int score = CalculateScore(rolls, 6);
+
+        //DEBUGGING
+        vector<int> rolls = {1, 1, 4, 4, 5, 5};
+        PrintRolls(rolls, 6);
+        int score = CalculateScore(rolls, 6);
+        cout << score;
     }
     else {
         cout << "invalid char" << endl;
