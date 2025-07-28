@@ -20,13 +20,15 @@ Roll # | Position in Vector
     5  |   4
     6  |   5
 */
-int CalculateScore(vector<int> rolls, int dice_amount) {
+vector<int> CalculateScore(vector<int> rolls, int dice_amount) {
     int score = 0;
     int straight16 = 0;
     int three_pairs = 0;
     int triplets = 0;
+    int dice_amt_to_keep = 0;
     bool four_pairs = false;
     vector<int> number_frequency(6); // frequency table should always have 6 slots
+    vector<int> score_and_amt_to_keep = {score, 6};
 
     //build frequency vector
     for(int i = 0; i < dice_amount; i++) {
@@ -42,9 +44,11 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
     // These are ran outside main score loop as they only need to be checked once
     if(number_frequency[0] == 2) {
         score += 200;
+        dice_amt_to_keep += 2;
     }
     if(number_frequency[4] == 2) {
         score += 100;
+        dice_amt_to_keep += 2;
     }
 
     for(int i = 0; i < 6; i++) {
@@ -52,7 +56,8 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
         if(dice_amount == 6) {
             if(number_frequency[i] == 6) {
                 score += 3000;
-                return score;
+                score_and_amt_to_keep = {score, 6};
+                return score_and_amt_to_keep;
             }
             if(number_frequency[i] == 2) {
                 three_pairs++;
@@ -60,6 +65,7 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
             if(number_frequency[i] == 4) {
                 four_pairs = true;
                 score += 1000;
+                dice_amt_to_keep += 4;
             }
             if(number_frequency[i] == 3) {
                 triplets += 1;
@@ -70,6 +76,7 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
         if(dice_amount >= 3) {
             // 3 of a kind check
             if(number_frequency[i] == 3) {
+                dice_amt_to_keep += 3;
                 switch(i) {
                     case 0:
                         score += 300;
@@ -91,16 +98,19 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
                         break;
                     default:
                         cout << "Error, i exceeded 5 in CalculateScore";
-                        return 7;
+                        score_and_amt_to_keep = {-1, -1};
+                        return score_and_amt_to_keep;
                 }
             }
 
             if(number_frequency[i] == 4) {
                 score += 1000;
+                dice_amt_to_keep += 4;
             }
 
             if(number_frequency[i] == 5) {
                 score += 2000;
+                dice_amt_to_keep += 5;
             }
         }
 
@@ -109,29 +119,35 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
             straight16++;
             if(i == 0) {
                 score += 100;
+                dice_amt_to_keep += 1;
             }
             else if(i == 4) {
                 score += 50;
+                dice_amt_to_keep += 1;
             }
         }
     }
 
     if(triplets == 2) {
         score = 2500;
-        return score;
+        score_and_amt_to_keep = {score, 6};
+        return score_and_amt_to_keep;
     }
 
     if(four_pairs == true && three_pairs == 1) {
         score = 1500;
-        return score;
+        score_and_amt_to_keep = {score, 6};
+        return score_and_amt_to_keep;
     }
 
     if(straight16 == 6 || three_pairs == 3) {
         score = 1500;
-        return score;
+        score_and_amt_to_keep = {score, 6};
+        return score_and_amt_to_keep;
     }
 
-    return score;
+    score_and_amt_to_keep = {score, dice_amt_to_keep};
+    return score_and_amt_to_keep;
 }
 
 void PrintRolls(vector<int> rolls, int dice_amount) {
@@ -151,13 +167,16 @@ int main () {
 
         // vector<int> rolls = Roll(6);
         // PrintRolls(rolls);
-        // int score = CalculateScore(rolls, 6);
+        // vector<int> score_and_amt_to_keep = CalculateScore(rolls, 6);
+        // cout << "score: " << score_and_amt_to_keep[0] << endl;
+        // cout << "keep " << score_and_amt_to_keep[1] << " dice." << endl;
 
         //DEBUGGING
         vector<int> rolls = {1, 1, 4, 5, 5, 5};
         PrintRolls(rolls, 6);
-        int score = CalculateScore(rolls, 6);
-        cout << score;
+        vector<int> score_and_amt_to_keep = CalculateScore(rolls, 6);
+        cout << "score: " << score_and_amt_to_keep[0] << endl;
+        cout << "keep " << score_and_amt_to_keep[1] << " dice." << endl;
     }
     else {
         cout << "invalid char" << endl;
