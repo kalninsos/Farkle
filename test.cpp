@@ -39,8 +39,16 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
     }
     cout << endl;
 
+    // These are ran outside main score loop as they only need to be checked once
+    if(number_frequency[0] == 2) {
+        score += 200;
+    }
+    if(number_frequency[4] == 2) {
+        score += 100;
+    }
+
     for(int i = 0; i < 6; i++) {
-        //Six of a kind and Three Pairs check and monitor
+        //Six of a kind check, four pairs check, Three Pairs monitor, 2x Triplets monitor
         if(dice_amount == 6) {
             if(number_frequency[i] == 6) {
                 score += 3000;
@@ -55,6 +63,44 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
             }
             if(number_frequency[i] == 3) {
                 triplets += 1;
+            }
+        }
+
+        //3+, 4+, 5+ dice checks
+        if(dice_amount >= 3) {
+            // 3 of a kind check
+            if(number_frequency[i] == 3) {
+                switch(i) {
+                    case 0:
+                        score += 300;
+                        break;
+                    case 1:
+                        score += 200;
+                        break;
+                    case 2:
+                        score += 300;
+                        break;
+                    case 3:
+                        score += 400;
+                        break;
+                    case 4:
+                        score += 500;
+                        break;
+                    case 5:
+                        score += 600;
+                        break;
+                    default:
+                        cout << "Error, i exceeded 5 in CalculateScore";
+                        return 7;
+                }
+            }
+
+            if(number_frequency[i] == 4) {
+                score += 1000;
+            }
+
+            if(number_frequency[i] == 5) {
+                score += 2000;
             }
         }
 
@@ -74,7 +120,7 @@ int CalculateScore(vector<int> rolls, int dice_amount) {
         score = 2500;
         return score;
     }
-    
+
     if(four_pairs == true && three_pairs == 1) {
         score = 1500;
         return score;
@@ -108,7 +154,7 @@ int main () {
         // int score = CalculateScore(rolls, 6);
 
         //DEBUGGING
-        vector<int> rolls = {1, 1, 4, 4, 5, 5};
+        vector<int> rolls = {1, 1, 4, 5, 5, 5};
         PrintRolls(rolls, 6);
         int score = CalculateScore(rolls, 6);
         cout << score;
