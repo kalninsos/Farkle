@@ -36,10 +36,10 @@ vector<int> CalculateScore(vector<int> rolls, int dice_amount) {
     }
 
     //print frequency vector for debugging
-    for(int i = 0; i < 6; i++) {
-        cout << number_frequency[i];
-    }
-    cout << endl;
+    // for(int i = 0; i < 6; i++) {
+    //     cout << number_frequency[i];
+    // }
+    // cout << endl;
 
     // These are ran outside main score loop as they only need to be checked once
     if(number_frequency[0] == 2) {
@@ -151,6 +151,7 @@ vector<int> CalculateScore(vector<int> rolls, int dice_amount) {
 }
 
 void PrintRolls(vector<int> rolls, int dice_amount) {
+    cout << "Your rolls is: ";
     for(int i = 0; i < dice_amount; i++) {
             cout << rolls[i];
     }
@@ -160,26 +161,50 @@ void PrintRolls(vector<int> rolls, int dice_amount) {
 int main () {
 
     char res;
-    cout << "Type 'r' to roll dice." << endl;
-    cin >> res;
-    if(res == 'r') {
-        cout << "rolling dice!" << endl;
+    int amt_to_reroll = 6;
+    int score = 0;
+    int localscore = 0;
 
-        // vector<int> rolls = Roll(6);
-        // PrintRolls(rolls);
-        // vector<int> score_and_amt_to_keep = CalculateScore(rolls, 6);
-        // cout << "score: " << score_and_amt_to_keep[0] << endl;
-        // cout << "keep " << score_and_amt_to_keep[1] << " dice." << endl;
+    while(score < 10000) {
+        cout << "Total score is: " << score << endl;
+        cout << "Current roll score is: " << localscore << endl;
+        cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
+        cin >> res;
 
-        //DEBUGGING
-        vector<int> rolls = {1, 1, 4, 5, 5, 5};
-        PrintRolls(rolls, 6);
-        vector<int> score_and_amt_to_keep = CalculateScore(rolls, 6);
-        cout << "score: " << score_and_amt_to_keep[0] << endl;
-        cout << "keep " << score_and_amt_to_keep[1] << " dice." << endl;
+        if(res == 'r') {
+            cout << "Rolling dice!" << endl;
+
+            vector<int> rolls = Roll(amt_to_reroll);
+            PrintRolls(rolls, amt_to_reroll);
+            vector<int> score_and_amt_to_keep = CalculateScore(rolls, amt_to_reroll);
+            
+            if(score_and_amt_to_keep[0] == 0) {
+                cout << "Farkle. All points on this roll run lost." << endl;
+                amt_to_reroll = 6;
+                localscore = 0;
+            }
+            else {
+                cout << "Your roll scored: " << score_and_amt_to_keep[0] << endl;
+                cout << "You need to re-roll " << amt_to_reroll - score_and_amt_to_keep[1] << " dice." << endl;
+                amt_to_reroll -= score_and_amt_to_keep[1];
+                localscore += score_and_amt_to_keep[0];
+            }
+        }
+
+        else if(res == 's') {
+            amt_to_reroll = 6;
+            score += localscore;
+            localscore = 0;
+        }
+        else if(res == 'q') {
+            exit(0);
+        }
+        else {
+            cout << "invalid char" << endl;
+        }
     }
-    else {
-        cout << "invalid char" << endl;
-    }
+
+    cout << "Final Score: " << score << endl;
+   
     return 0;
 }
