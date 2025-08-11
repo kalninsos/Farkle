@@ -165,9 +165,8 @@ int main () {
     int score = 0;
     int localscore = 0;
 
+    cout << "Welcome to Farkle!" << endl;
     while(score < 10000) {
-        cout << "Total score is: " << score << endl;
-        cout << "Current roll score is: " << localscore << endl;
         cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
         cin >> res;
 
@@ -185,6 +184,7 @@ int main () {
             }
             else {
                 cout << "Your roll scored: " << score_and_amt_to_keep[0] << endl;
+                cout << "Your current amount of roll points on this turn is: " << localscore << endl;
                 cout << "You need to re-roll " << amt_to_reroll - score_and_amt_to_keep[1] << " dice." << endl;
                 amt_to_reroll -= score_and_amt_to_keep[1];
                 localscore += score_and_amt_to_keep[0];
@@ -202,6 +202,8 @@ int main () {
         else {
             cout << "invalid char" << endl;
         }
+
+        cout << "Total score is: " << score << endl;
     }
 
     cout << "Final Score: " << score << endl;
