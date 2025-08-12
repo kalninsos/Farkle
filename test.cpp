@@ -1,5 +1,8 @@
 #include <iostream>
 #include <vector>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
 using namespace std;
 
@@ -167,6 +170,8 @@ int main () {
 
     cout << "Welcome to Farkle!" << endl;
     while(score < 10000) {
+        srand(time(NULL));
+        
         cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
         cin >> res;
 
