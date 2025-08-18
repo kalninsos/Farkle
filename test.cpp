@@ -6,6 +6,17 @@
 
 using namespace std;
 
+class Players {
+    public:
+        string playerType;
+        vector<int> score_and_amt_to_keep;
+        vector<int> rolls;
+        char res;
+        int score;
+        int localscore;
+        int amt_to_reroll;
+};
+
 vector<int> Roll(int dice_amount) {
     vector<int> rolls(dice_amount);
     for(int i = 0; i < dice_amount; i++) {
@@ -163,55 +174,62 @@ void PrintRolls(vector<int> rolls, int dice_amount) {
 
 int main () {
 
-    char res;
-    int amt_to_reroll = 6;
-    int score = 0;
-    int localscore = 0;
+    Players human1;
+    human1.amt_to_reroll = 6;
+    human1.score = 0;
+    human1.localscore = 0;
 
     cout << "Welcome to Farkle!" << endl;
-    while(score < 10000) {
+    while(human1.score < 10000) {
         srand(time(NULL));
-        
-        cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
-        cin >> res;
 
-        if(res == 'r') {
+        cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
+        cin >> human1.res;
+
+        if(human1.res == 'r') {
             cout << "Rolling dice!" << endl;
 
-            vector<int> rolls = Roll(amt_to_reroll);
-            PrintRolls(rolls, amt_to_reroll);
-            vector<int> score_and_amt_to_keep = CalculateScore(rolls, amt_to_reroll);
+            human1.rolls = Roll(human1.amt_to_reroll);
+            PrintRolls(human1.rolls, human1.amt_to_reroll);
+            human1.score_and_amt_to_keep = CalculateScore(human1.rolls, human1.amt_to_reroll);
             
-            if(score_and_amt_to_keep[0] == 0) {
+            if(human1.score_and_amt_to_keep[0] == 0) {
                 cout << "Farkle. All points on this roll run lost." << endl;
-                amt_to_reroll = 6;
-                localscore = 0;
+                human1.amt_to_reroll = 6;
+                human1.localscore = 0;
             }
             else {
-                cout << "Your roll scored: " << score_and_amt_to_keep[0] << endl;
-                cout << "Your current amount of roll points on this turn is: " << localscore << endl;
-                cout << "You need to re-roll " << amt_to_reroll - score_and_amt_to_keep[1] << " dice." << endl;
-                amt_to_reroll -= score_and_amt_to_keep[1];
-                localscore += score_and_amt_to_keep[0];
+                cout << "Your roll scored: " << human1.score_and_amt_to_keep[0] << endl;
+                cout << "Your current amount of roll points on this turn is: " << human1.localscore << endl;
+                cout << "You need to re-roll " << human1.amt_to_reroll - human1.score_and_amt_to_keep[1] << " dice." << endl;
+                human1.amt_to_reroll -= human1.score_and_amt_to_keep[1];
+                human1.localscore += human1.score_and_amt_to_keep[0];
             }
         }
 
-        else if(res == 's') {
-            amt_to_reroll = 6;
-            score += localscore;
-            localscore = 0;
+        else if(human1.res == 's') {
+            if(human1.score == 0 && human1.localscore < 500) {
+                cout << "You must score at least 500 points to begin the game and start saving points." << endl;
+            }
+            else {
+                human1.amt_to_reroll = 6;
+                human1.score += human1.localscore;
+                human1.localscore = 0;
+            }
         }
-        else if(res == 'q') {
+
+        else if(human1.res == 'q') {
             exit(0);
         }
+
         else {
             cout << "invalid char" << endl;
         }
 
-        cout << "Total score is: " << score << endl;
+        cout << "Total score is: " << human1.score << endl;
     }
 
-    cout << "Final Score: " << score << endl;
+    cout << "Final Score: " << human1.score << endl;
    
     return 0;
 }
