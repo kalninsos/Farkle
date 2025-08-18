@@ -165,10 +165,14 @@ vector<int> CalculateScore(vector<int> rolls, int dice_amount) {
 }
 
 void PrintRolls(vector<int> rolls, int dice_amount) {
-    cout << "Your rolls is: ";
+    cout << "Your roll is: [";
     for(int i = 0; i < dice_amount; i++) {
             cout << rolls[i];
+            if(i < dice_amount - 1) {
+                cout << " ";
+            }
     }
+    cout << "]";
     cout << endl;
 }
 
@@ -183,7 +187,12 @@ int main () {
     while(human1.score < 10000) {
         srand(time(NULL));
 
-        cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
+        if(human1.score == 0) {
+            cout << "Type 'r' to roll dice." << endl;
+        }
+        else {
+            cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
+        }
         cin >> human1.res;
 
         if(human1.res == 'r') {
