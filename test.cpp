@@ -3,11 +3,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <chrono> // for sleep
+#include <thread> // for sleep
 
 using namespace std;
 
 class Players {
     public:
+        Players(int RerollAmount, int Score, int LocalScore) {
+            amt_to_reroll = RerollAmount;
+            score = Score;
+            localscore = LocalScore;
+        }
+        void reset(int RerollAmount, int LocalScore) {
+            amt_to_reroll = RerollAmount;
+            localscore = LocalScore;
+        }
         string playerType;
         vector<int> score_and_amt_to_keep;
         vector<int> rolls;
@@ -176,67 +187,97 @@ void PrintRolls(vector<int> rolls, int dice_amount) {
     cout << endl;
 }
 
+char aiDecision(int amt_to_reroll, int score, int localscore) {
+    if(score == 0 and localscore < 500) {
+        return 'r';
+    }
+    return 'r';
+}
+
 int main () {
 
-    Players human1;
-    human1.amt_to_reroll = 6;
-    human1.score = 0;
-    human1.localscore = 0;
+    Players human1(6, 0, 0);
+    Players AI(6, 0, 0);
+    char turn = 'h';
 
     cout << "Welcome to Farkle!" << endl;
-    while(human1.score < 10000) {
-        srand(time(NULL));
 
-        if(human1.score == 0) {
-            cout << "Type 'r' to roll dice." << endl;
-        }
-        else {
-            cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
-        }
-        cin >> human1.res;
+    while(human1.score < 10000 || AI.score < 10000) {
+        
+        srand(time(NULL)); // random seed
 
-        if(human1.res == 'r') {
-            cout << "Rolling dice!" << endl;
+        while(turn == 'h') {
 
-            human1.rolls = Roll(human1.amt_to_reroll);
-            PrintRolls(human1.rolls, human1.amt_to_reroll);
-            human1.score_and_amt_to_keep = CalculateScore(human1.rolls, human1.amt_to_reroll);
-            
-            if(human1.score_and_amt_to_keep[0] == 0) {
-                cout << "Farkle. All points on this roll run lost." << endl;
-                human1.amt_to_reroll = 6;
-                human1.localscore = 0;
+            if(human1.score == 0) {
+                cout << "Type 'r' to roll dice." << endl;
             }
             else {
-                cout << "Your roll scored: " << human1.score_and_amt_to_keep[0] << endl;
-                cout << "Your current amount of roll points on this turn is: " << human1.localscore << endl;
-                cout << "You need to re-roll " << human1.amt_to_reroll - human1.score_and_amt_to_keep[1] << " dice." << endl;
-                human1.amt_to_reroll -= human1.score_and_amt_to_keep[1];
-                human1.localscore += human1.score_and_amt_to_keep[0];
+                cout << "Type 'r' to roll dice, or 's' to save your score and start a new roll." << endl;
             }
-        }
+            cin >> human1.res;
+        
+        
+            if(human1.res == 'r') {
+                cout << "Rolling dice!" << endl;
 
-        else if(human1.res == 's') {
-            if(human1.score == 0 && human1.localscore < 500) {
-                cout << "You must score at least 500 points to begin the game and start saving points." << endl;
+                human1.rolls = Roll(human1.amt_to_reroll);
+                PrintRolls(human1.rolls, human1.amt_to_reroll);
+                human1.score_and_amt_to_keep = CalculateScore(human1.rolls, human1.amt_to_reroll);
+
+                if(human1.score_and_amt_to_keep[0] == 0) {
+                    cout << "Farkle. All points on this roll run lost." << endl;
+                    human1.reset(6, 0);
+                    turn = 'a';
+                }
+                else {
+                    cout << "Your roll scored: " << human1.score_and_amt_to_keep[0] << endl;
+                    cout << "Your current amount of roll points on this turn is: " << human1.localscore << " + " << human1.score_and_amt_to_keep[0] << " = " << human1.localscore + human1.score_and_amt_to_keep[0] << endl;
+
+                    human1.amt_to_reroll -= human1.score_and_amt_to_keep[1];
+                    human1.localscore += human1.score_and_amt_to_keep[0];
+
+                    if(human1.amt_to_reroll > 0) { //if we have at least one dice to roll, tell user
+                        cout << "You need to re-roll " << human1.amt_to_reroll  << " dice." << endl;
+                    }
+                    else if(human1.amt_to_reroll == 0) {
+                        cout << "You have no additional dice to roll. Points have been auto saved." << endl;
+                        human1.score += human1.localscore;
+                        human1.reset(6,0);
+                        turn = 'a';
+                    }
+                }
             }
+
+            else if(human1.res == 's') {
+                if(human1.score == 0 && human1.localscore < 500) {
+                    cout << "You must score at least 500 points to begin the game and start saving points." << endl;
+                }
+                else {
+                    human1.score += human1.localscore;
+                    human1.reset(6, 0);
+                    turn = 'a';
+                }
+            }
+
+            else if(human1.res == 'q') {
+                exit(0);
+            }
+
             else {
-                human1.amt_to_reroll = 6;
-                human1.score += human1.localscore;
-                human1.localscore = 0;
+                cout << "invalid char" << endl;
             }
+
+            cout << "Total score is: " << human1.score << endl;
         }
 
-        else if(human1.res == 'q') {
-            exit(0);
+        if(turn == 'a') {
+            cout << "It is turn of AI!" << endl;
+            this_thread::sleep_for(chrono::seconds(1));
+            char action = aiDecision(AI.amt_to_reroll, AI.score, AI.localscore);
+            cout << "AI chose to: " << action << endl;
+            turn = 'h';
         }
-
-        else {
-            cout << "invalid char" << endl;
-        }
-
-        cout << "Total score is: " << human1.score << endl;
-    }
+    }   
 
     cout << "Final Score: " << human1.score << endl;
    
