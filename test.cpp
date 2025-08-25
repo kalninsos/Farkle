@@ -15,11 +15,12 @@ class Players {
             score = Score;
             localscore = LocalScore;
         }
+
         void reset(int RerollAmount, int LocalScore) {
             amt_to_reroll = RerollAmount;
             localscore = LocalScore;
         }
-        string playerType;
+
         vector<int> score_and_amt_to_keep;
         vector<int> rolls;
         char res;
@@ -175,8 +176,13 @@ vector<int> CalculateScore(vector<int> rolls, int dice_amount) {
     return score_and_amt_to_keep;
 }
 
-void PrintRolls(vector<int> rolls, int dice_amount) {
-    cout << "Your roll is: [";
+void PrintRolls(vector<int> rolls, int dice_amount, char turn) {
+    if(turn == 'h') {
+        cout << "Your roll is: [";
+    }
+    else if(turn == 'a') {
+        cout << "AI rolled: [";
+    }
     for(int i = 0; i < dice_amount; i++) {
             cout << rolls[i];
             if(i < dice_amount - 1) {
@@ -188,10 +194,34 @@ void PrintRolls(vector<int> rolls, int dice_amount) {
 }
 
 char aiDecision(int amt_to_reroll, int score, int localscore) {
+    // Starting game mode
     if(score == 0 and localscore < 500) {
         return 'r';
     }
-    return 'r';
+
+    //Save points if we are at the start of the game or it gets too risky
+    if(localscore == 500 && localscore == 0) {
+        return 's';
+    }
+    else if(localscore >= 400 && amt_to_reroll <= 3) {
+        return 's';
+    }
+
+    //Roll mode
+    if(amt_to_reroll > 3) {
+        return 'r';
+    }
+    else if(amt_to_reroll <= 3 && localscore < 100) {
+        return 'r';
+    }
+    
+    //Failsafes
+    if(localscore > 0) {
+        return 's';
+    }
+    else {
+        return 'r';
+    }
 }
 
 int main () {
@@ -202,13 +232,13 @@ int main () {
 
     cout << "Welcome to Farkle!" << endl;
 
-    while(human1.score < 10000 || AI.score < 10000) {
+    while(human1.score < 10000 && AI.score < 10000) {
         
         srand(time(NULL)); // random seed
 
         while(turn == 'h') {
 
-            if(human1.score == 0) {
+            if(human1.score == 0 && human1.localscore < 500) {
                 cout << "Type 'r' to roll dice." << endl;
             }
             else {
@@ -216,12 +246,17 @@ int main () {
             }
             cin >> human1.res;
         
-        
+            // b for 'scoreboard' to see scores
+            if(human1.res == 'b') {
+                cout << "Human score: " << human1.score << endl;
+                cout << "AI score: " << AI.score << endl;
+            }
+
             if(human1.res == 'r') {
                 cout << "Rolling dice!" << endl;
 
                 human1.rolls = Roll(human1.amt_to_reroll);
-                PrintRolls(human1.rolls, human1.amt_to_reroll);
+                PrintRolls(human1.rolls, human1.amt_to_reroll, turn);
                 human1.score_and_amt_to_keep = CalculateScore(human1.rolls, human1.amt_to_reroll);
 
                 if(human1.score_and_amt_to_keep[0] == 0) {
@@ -239,7 +274,8 @@ int main () {
                     if(human1.amt_to_reroll > 0) { //if we have at least one dice to roll, tell user
                         cout << "You need to re-roll " << human1.amt_to_reroll  << " dice." << endl;
                     }
-                    else if(human1.amt_to_reroll == 0) {
+                    // Can keep at least one dice from previous roll, but now have no dice left to roll
+                    else if(human1.amt_to_reroll == 0 && human1.score >= 500 || human1.amt_to_reroll == 0 && human1.localscore >= 500) {
                         cout << "You have no additional dice to roll. Points have been auto saved." << endl;
                         human1.score += human1.localscore;
                         human1.reset(6,0);
@@ -270,16 +306,64 @@ int main () {
             cout << "Total score is: " << human1.score << endl;
         }
 
-        if(turn == 'a') {
+        //AI turn
+        if (turn == 'a') {
             cout << "It is turn of AI!" << endl;
             this_thread::sleep_for(chrono::seconds(1));
             char action = aiDecision(AI.amt_to_reroll, AI.score, AI.localscore);
             cout << "AI chose to: " << action << endl;
-            turn = 'h';
+
+            if(action == 'r' && AI.amt_to_reroll != 0) {
+                AI.rolls = Roll(AI.amt_to_reroll);
+                PrintRolls(AI.rolls, AI.amt_to_reroll, turn);
+                AI.score_and_amt_to_keep = CalculateScore(AI.rolls, AI.amt_to_reroll);
+
+                if(AI.score_and_amt_to_keep[0] == 0) {
+                    cout << "Farkle. All points on this roll run lost." << endl;
+                    AI.reset(6, 0);
+                    turn = 'h';
+                }
+
+                else {
+                    cout << "AI roll scored: " << AI.score_and_amt_to_keep[0] << endl;
+                    cout << "AI current amount of roll points on this turn is: " << AI.localscore << " + " << AI.score_and_amt_to_keep[0] << " = " << AI.localscore + AI.score_and_amt_to_keep[0] << endl;
+
+                    AI.amt_to_reroll -= AI.score_and_amt_to_keep[1];
+                    AI.localscore += AI.score_and_amt_to_keep[0];
+
+                    if(AI.amt_to_reroll > 0) { //if we have at least one dice to roll, tell user
+                        cout << "AI needs to re-roll " << AI.amt_to_reroll  << " dice." << endl;
+                    }
+                    //If we reached base points already and run out of dice, auto save points
+                    else if(AI.amt_to_reroll == 0 && AI.score >= 500 || AI.amt_to_reroll == 0 && AI.localscore >= 500) {
+                        cout << "AI has no additional dice to roll. Points have been auto saved." << endl;
+                        AI.score += AI.localscore;
+                        AI.reset(6,0);
+                        turn = 'h';
+                    }
+                    else if(AI.amt_to_reroll == 0 && AI.localscore < 500) {
+                        cout << "AI has run out of dice and not reached required points. AI turn over." << endl;
+                        turn = 'h';
+                    }
+                }
+            }
+
+            else if(action == 's') {
+                if(AI.score == 0 && AI.localscore < 500) {
+                    cout << "AI must score at least 500 points to begin the game and start saving points. Response Invalid" << endl;
+                }
+                else {
+                    AI.score += AI.localscore;
+                    AI.reset(6, 0);
+                    turn = 'h';
+                }
+            }
         }
     }   
 
-    cout << "Final Score: " << human1.score << endl;
+    cout << "Final Scores: " << endl;
+    cout << "AI: " << AI.score << endl;
+    cout << "Human: " << human1.score;
    
     return 0;
 }
